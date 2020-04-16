@@ -34,7 +34,7 @@ if [ $? -eq 0 ]; then
 
 function backupShiro () {
 ${_CMD} -a get -c zeppelin-shiro-ini -f /tmp/shiro.ini.orig
-echo "\nBack up created : /tmp/shiro.ini.orig"
+echo "\n Back up created : /tmp/shiro.ini.orig"
 }
 
 function configureKnoxSSOforZeppelin () {
@@ -47,7 +47,7 @@ cat > /tmp/shiro.json <<EOFILE
 EOFILE
 
 ${_CMD} -a set -c zeppelin-shiro-ini -f /tmp/shiro.json
-echo "\nShiro.ini has been updated with knoxsso configurations"
+echo "\n Shiro.ini has been updated with knoxsso configurations"
 sleep 5
 }
 
@@ -61,7 +61,7 @@ sleep 20
 curl -k -u $_AMBARI_ADMIN_USER:$_AMBARI_ADMIN_PASSWORD -H 'X-Requested-By: ambari'  $_AMBARI_API/clusters/$_CLUSTER_NAME/services/ZEPPELIN -X PUT \
 -d '{"RequestInfo": {"context" :"Start Knox - Gulshad"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}'
 
-echo "\nRestarting Zeppelin.......\n"
+echo "\n Restarting Zeppelin.......\n"
 echo "Check status on Ambari UI"
 }
 
