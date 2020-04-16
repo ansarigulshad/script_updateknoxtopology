@@ -10,25 +10,8 @@
 yum clean all
 yum install jq -y
 
-_LDAP_URL="ldap://$(hostname -f):389"
-_LDAP_BIND_DN="cn=ldapadmin,dc=HORTONWORKS,dc=COM"
-_LDAP_BIND_PASSWORD="hadoop123"
-_LDAP_SEARCH_BASE="dc=hortonworks,dc=com"
-_LDAP_userObjectClass=posixAccount
-_LDAP_userSearchAttributeName=uid
-_LDAP_groupObjectClass=posixGroup
-_LDAP_groupIdAttribute=cn
-
-_AMBARI_HOST="$(hostname -f)"
-_AMBARI_PORT="8080"
-_AMBARI_PROTOCOL=http
-_AMBARI_ADMIN_USER=admin
-_AMBARI_ADMIN_PASSWORD=gansari
-_TARGETSCRIPT="/var/lib/ambari-server/resources/scripts/configs.py"
-_AMBARI_API="$_AMBARI_PROTOCOL://$_AMBARI_HOST:$_AMBARI_PORT/api/v1"
-_CLUSTER_NAME=`curl -k -u $_AMBARI_ADMIN_USER:$_AMBARI_ADMIN_PASSWORD -H 'X-Requested-By: ambari' $_AMBARI_API/clusters | jq -r '.items[].Clusters.cluster_name'`
-
-_CMD="${_TARGETSCRIPT} -l ${_AMBARI_HOST} -t ${_AMBARI_PORT} -n ${_CLUSTER_NAME}  -s ${_AMBARI_PROTOCOL} -u ${_AMBARI_ADMIN_USER} -p ${_AMBARI_ADMIN_PASSWORD}"
+LOC=`pwd`
+source $LOC/cluster.properties
 
 #------------------------------------------------------------------------------------
 function checkforTarget () {
