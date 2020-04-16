@@ -7,6 +7,9 @@
 # LinkedIn      : https://linkedin.com/in/gulshad/
 #
 
+yum clean all
+yum install jq -y
+
 _LDAP_URL="ldap://$(hostname -f):389"
 _LDAP_BIND_DN="cn=ldapadmin,dc=HORTONWORKS,dc=COM"
 _LDAP_BIND_PASSWORD=hadoop123
@@ -26,6 +29,17 @@ _CLUSTER_NAME=`curl -k -u $_AMBARI_ADMIN_USER:$_AMBARI_ADMIN_PASSWORD -H 'X-Requ
 
 _CMD="${_TARGETSCRIPT} -l ${_AMBARI_HOST} -t ${_AMBARI_PORT} -n ${_CLUSTER_NAME}  -s ${_AMBARI_PROTOCOL} -u ${_AMBARI_ADMIN_USER} -p ${_AMBARI_ADMIN_PASSWORD}"
 
+#------------------------------------------------------------------------------------
+function checkforTarget () {
+   if [ ! -f $_TARGETSCRIPT ]; then
+      echo "$(date) Missing ($_TARGETSCRIPT). Make sure you execute this script from ambari-server node"
+      exit 1
+   fi
+}
+#------------------------------------------------------------------------------------
+# update Default Topology file
+#------------------------------------------------------------------------------------
+function updateDefaultTopology () {
 cat > /tmp/default.json <<EOFILE
 {
   "properties": {
@@ -34,6 +48,13 @@ cat > /tmp/default.json <<EOFILE
 }
 EOFILE
 
+echo "Updated default.xml with ldap details"
+
+}
+#------------------------------------------------------------------------------------
+# update Knox SSO Topology file
+#------------------------------------------------------------------------------------
+function updateKnoxSSOTopology () {
 cat > /tmp/knoxsso.json <<EOFILE
 {
   "properties": {
@@ -42,18 +63,47 @@ cat > /tmp/knoxsso.json <<EOFILE
 }
 EOFILE
 
+echo "Updated knoxsso.xml with ldap details"
+}
+
+#------------------------------------------------------------------------------------
+# Backup Original files
+function backupOrigFiles () {
 ${_CMD} -a get -c knoxsso-topology -f /tmp/knoxsso.json.orig
 ${_CMD} -a get -c topology -f /tmp/default.json.orig
 
+echo "Backup created for default.xml and knoxsso.xml : /tmp/default.json.orig /tmp/knoxsso.json.orig "
+}
+#------------------------------------------------------------------------------------
+# Update New Files
+function updateNewFiles () {
 ${_CMD} -a set -c knoxsso-topology -f /tmp/knoxsso.json
 ${_CMD} -a set -c topology -f /tmp/default.json
 
+echo "default.xml and knoxsso.xml updated successfull"
+
+}
+#------------------------------------------------------------------------------------
+function restartKnox () {
+# Stop Knox
 curl -k -u $_AMBARI_ADMIN_USER:$_AMBARI_ADMIN_PASSWORD -H 'X-Requested-By: ambari'  $_AMBARI_API/clusters/$_CLUSTER_NAME/services/KNOX -X PUT \
 -d '{"RequestInfo": {"context" :"Stop Knox - Gulshad"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}'
-
+#------------------------------------------------------------------------------------
+# Start Knox
 curl -k -u $_AMBARI_ADMIN_USER:$_AMBARI_ADMIN_PASSWORD -H 'X-Requested-By: ambari'  $_AMBARI_API/clusters/$_CLUSTER_NAME/services/KNOX -X PUT \
 -d '{"RequestInfo": {"context" :"Start Knox - Gulshad"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}'
 
+echo "Restarting Knox......."
+echo "check status on Ambari UI"
 
+}
+#------------------------------------------------------------------------------------
 
+# Action Start Here
+checkforTarget
+updateDefaultTopology
+updateKnoxSSOTopology
+backupOrigFiles
+updateNewFiles
+restartKnox
 # End of Script
