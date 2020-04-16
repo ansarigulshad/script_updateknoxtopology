@@ -19,7 +19,8 @@ function checkforTarget () {
 
 # Retrieve knox certificate
 function getKnoxCert () {
-openssl s_client -connect ${_KNOX_HOST}:${_KNOX_PORT}  -showcerts  2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'  > /tmp/knox.pem
+openssl s_client -connect ${_KNOX_HOST}:${_KNOX_PORT}  -showcerts  2>/dev/null</dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'  > /tmp/knox.pem
+
 }
 
 # Copy knox certificate to zeppelin host
